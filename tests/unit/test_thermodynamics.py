@@ -7,6 +7,7 @@ import math
 import numpy as np
 import pytest
 
+from sepflows.constants import P_ATM
 from sepflows.utils.thermodynamics import (
     antoine_pressure,
     bubble_point_temperature,
@@ -15,7 +16,6 @@ from sepflows.utils.thermodynamics import (
     rachford_rice,
     relative_volatility,
 )
-from sepflows.constants import P_ATM
 
 
 class TestAntoinePressure:
@@ -114,11 +114,14 @@ class TestRachfordRice:
         with pytest.raises(ValueError, match="same shape"):
             rachford_rice(z, k)
 
-    @pytest.mark.parametrize("z0,k0,k1", [
-        (0.3, 3.0, 0.3),
-        (0.6, 2.0, 0.5),
-        (0.8, 1.5, 0.7),
-    ])
+    @pytest.mark.parametrize(
+        "z0,k0,k1",
+        [
+            (0.3, 3.0, 0.3),
+            (0.6, 2.0, 0.5),
+            (0.8, 1.5, 0.7),
+        ],
+    )
     def test_material_balance(self, z0: float, k0: float, k1: float) -> None:
         """Verify Rachford-Rice closure: z = Ψ·y + (1-Ψ)·x."""
         z = np.array([z0, 1.0 - z0])
@@ -126,7 +129,8 @@ class TestRachfordRice:
         psi = rachford_rice(z, k)
         x = z / (1.0 + psi * (k - 1.0))
         y = k * x
-        x /= x.sum(); y /= y.sum()
+        x /= x.sum()
+        y /= y.sum()
         reconstructed = psi * y + (1.0 - psi) * x
         np.testing.assert_allclose(reconstructed, z, atol=1e-6)
 

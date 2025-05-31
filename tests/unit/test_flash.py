@@ -7,7 +7,7 @@ import math
 import numpy as np
 import pytest
 
-from sepflows.flash import FlashDrum, FlashDrumResult
+from sepflows.flash import FlashDrum
 
 
 class TestFlashDrumInit:

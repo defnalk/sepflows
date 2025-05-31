@@ -5,7 +5,7 @@ tolerances, logging verbosity, and unit-system preferences.  Instantiate
 once and pass it through your simulation hierarchy, or rely on the
 module-level :data:`DEFAULT_CONFIG` singleton for quick scripts.
 
-Example
+Example:
 -------
 >>> from sepflows.config import SepConfig, DEFAULT_CONFIG
 >>> cfg = SepConfig(max_iterations=500, convergence_tol=1e-7)
@@ -78,30 +78,20 @@ class SepConfig:
     def __post_init__(self) -> None:
         """Validate configuration values after construction."""
         if self.max_iterations < 1:
-            raise ValueError(
-                f"max_iterations must be ≥ 1, got {self.max_iterations}"
-            )
+            raise ValueError(f"max_iterations must be ≥ 1, got {self.max_iterations}")
         if not (0.0 < self.convergence_tol < 1.0):
-            raise ValueError(
-                f"convergence_tol must be in (0, 1), got {self.convergence_tol}"
-            )
+            raise ValueError(f"convergence_tol must be in (0, 1), got {self.convergence_tol}")
         if self.pressure_unit not in {"Pa", "kPa", "bar"}:
             raise ValueError(
                 f"pressure_unit must be 'Pa', 'kPa', or 'bar', got '{self.pressure_unit}'"
             )
         if self.temperature_unit not in {"K", "C"}:
-            raise ValueError(
-                f"temperature_unit must be 'K' or 'C', got '{self.temperature_unit}'"
-            )
+            raise ValueError(f"temperature_unit must be 'K' or 'C', got '{self.temperature_unit}'")
         lo, hi = self.flash_vf_bracket
         if not (0 < lo < hi < 1):
-            raise ValueError(
-                f"flash_vf_bracket must satisfy 0 < lo < hi < 1, got ({lo}, {hi})"
-            )
+            raise ValueError(f"flash_vf_bracket must satisfy 0 < lo < hi < 1, got ({lo}, {hi})")
         if self.eos_model not in {"raoult", "srk"}:
-            raise ValueError(
-                f"eos_model must be 'raoult' or 'srk', got '{self.eos_model}'"
-            )
+            raise ValueError(f"eos_model must be 'raoult' or 'srk', got '{self.eos_model}'")
 
 
 #: Module-level default configuration used when no explicit config is supplied.

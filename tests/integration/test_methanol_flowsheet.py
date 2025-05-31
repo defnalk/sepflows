@@ -27,7 +27,13 @@ class TestFullMethanolFlowsheet:
     # ── Feed definition (CENG50009 basis: F = 65 000 kmol/h) ─────────────────
     FEED_FLOW: float = 65_000.0  # kmol/h
     COMPONENTS: list[str] = [
-        "dme", "methyl_formate", "methanol", "ethanol", "water", "1_propanol", "1_butanol"
+        "dme",
+        "methyl_formate",
+        "methanol",
+        "ethanol",
+        "water",
+        "1_propanol",
+        "1_butanol",
     ]
     Z_FEED: np.ndarray = np.array([0.02, 0.03, 0.65, 0.04, 0.22, 0.02, 0.02])
 
@@ -49,15 +55,13 @@ class TestFullMethanolFlowsheet:
             f"DME vapour fraction {res.y[0]:.4f} should exceed feed {self.Z_FEED[0]:.4f}"
         )
         # Methanol (index 2) should be mainly in the liquid
-        assert res.x[2] > res.y[2], (
-            "Methanol should be enriched in liquid phase"
-        )
+        assert res.x[2] > res.y[2], "Methanol should be enriched in liquid phase"
 
     def test_co2_capture_stage(self) -> None:
         """CO₂ absorber removes ≥ 90 % of recycle-gas CO₂."""
         absorber = AmineAbsorber(
             removal_target=0.90,
-            inlet_co2_mol_h=4_500.0,   # approx 9 mol% CO₂ in 50 000 mol/h gas
+            inlet_co2_mol_h=4_500.0,  # approx 9 mol% CO₂ in 50 000 mol/h gas
             inlet_total_mol_h=50_000.0,
         )
         res = absorber.solve()

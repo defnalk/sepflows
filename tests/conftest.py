@@ -11,8 +11,8 @@ from sepflows.config import SepConfig
 from sepflows.distillation import RigorousColumn, ShortcutColumn
 from sepflows.flash import FlashDrum
 
-
 # ── Config fixtures ────────────────────────────────────────────────────────────
+
 
 @pytest.fixture
 def default_config() -> SepConfig:
@@ -34,6 +34,7 @@ def loose_config() -> SepConfig:
 
 # ── Component definitions ──────────────────────────────────────────────────────
 
+
 @pytest.fixture
 def methanol_water_components() -> list[str]:
     """Binary methanol/water system."""
@@ -54,6 +55,7 @@ def air_components() -> list[str]:
 
 # ── Feed compositions ──────────────────────────────────────────────────────────
 
+
 @pytest.fixture
 def z_methanol_water() -> np.ndarray:
     """Feed for binary methanol/water column."""
@@ -73,6 +75,7 @@ def z_air() -> np.ndarray:
 
 
 # ── Pre-built model instances ──────────────────────────────────────────────────
+
 
 @pytest.fixture
 def flash_drum_meoh_water(default_config: SepConfig) -> FlashDrum:

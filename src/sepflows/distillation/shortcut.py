@@ -10,7 +10,7 @@ Implements the three-step shortcut procedure used in Aspen Plus DSTWU:
 Results are validated against the DSTWU values from CENG50009 coursework
 (Table 1: B3, B8, B11, B13 column blocks).
 
-References
+References:
 ----------
 - Fenske, M. R., *Ind. Eng. Chem.* 24 (1932)
 - Underwood, A. J. V., *Chem. Eng. Prog.* 44 (1948)
@@ -25,14 +25,12 @@ import math
 from dataclasses import dataclass
 
 import numpy as np
-from numpy.typing import NDArray
 
 from sepflows.config import DEFAULT_CONFIG, SepConfig
 from sepflows.constants import DISTILLATION_DEFAULTS, P_ATM
 from sepflows.utils.thermodynamics import (
     minimum_reflux_underwood,
     relative_volatility,
-    underwood_theta,
 )
 
 __all__ = ["DSWTUResult", "ShortcutColumn"]
@@ -142,9 +140,7 @@ class ShortcutColumn:
         self._n_mult = stages_multiplier
         self._cfg = config or DEFAULT_CONFIG
 
-        self._alpha = relative_volatility(
-            self._lk, self._hk, self._t_feed, self._pressure_pa
-        )
+        self._alpha = relative_volatility(self._lk, self._hk, self._t_feed, self._pressure_pa)
         _log.info(
             "ShortcutColumn: %s/%s, α=%.4f, P=%.2f bar, T_feed=%.1f K",
             self._lk,
@@ -184,9 +180,7 @@ class ShortcutColumn:
         if feed_flow <= 0.0:
             raise ValueError(f"feed_flow must be positive, got {feed_flow}")
         if not (0 < z_lk < 1) or not (0 < z_hk < 1):
-            raise ValueError(
-                "Feed mole fractions z_lk and z_hk must each be in (0, 1)."
-            )
+            raise ValueError("Feed mole fractions z_lk and z_hk must each be in (0, 1).")
         if z_lk + z_hk > 1.0 + 1e-6:
             raise ValueError(
                 f"z_lk + z_hk = {z_lk + z_hk:.4f} > 1.  "
@@ -209,9 +203,7 @@ class ShortcutColumn:
         # ── Step 3: Gilliland (N and Nf) ─────────────────────────────────────
         r_actual = max(r_min * self._r_mult, r_min + 0.01)
         n_actual = self._gilliland(n_min, r_min, r_actual)
-        n_feed = self._kirkbride_feed_stage(
-            n_actual, z_lk, z_hk, feed_flow
-        )
+        n_feed = self._kirkbride_feed_stage(n_actual, z_lk, z_hk, feed_flow)
         _log.info(
             "Column design: Rmin=%.4f R=%.4f Nmin=%.4f N=%.4f Nf=%.1f",
             r_min,
@@ -237,9 +229,7 @@ class ShortcutColumn:
     def _fenske(self, z_lk: float, z_hk: float) -> float:
         """Apply Fenske equation for Nmin."""
         # Distillate and bottoms compositions in pseudo-binary basis
-        x_d_lk = self._rec_lk * z_lk / (
-            self._rec_lk * z_lk + (1.0 - self._rec_hk) * z_hk
-        )
+        x_d_lk = self._rec_lk * z_lk / (self._rec_lk * z_lk + (1.0 - self._rec_hk) * z_hk)
         x_b_lk = ((1.0 - self._rec_lk) * z_lk) / (
             (1.0 - self._rec_lk) * z_lk + self._rec_hk * z_hk
         )
@@ -260,9 +250,7 @@ class ShortcutColumn:
         """
         x_g = (r - r_min) / (r + 1.0)
         # Molokanov equation
-        y_g = 1.0 - math.exp(
-            (1.0 + 54.4 * x_g) / (11.0 + 117.2 * x_g) * (x_g - 1.0) / (x_g**0.5)
-        )
+        y_g = 1.0 - math.exp((1.0 + 54.4 * x_g) / (11.0 + 117.2 * x_g) * (x_g - 1.0) / (x_g**0.5))
         n = (y_g + n_min) / (1.0 - y_g)
         return n
 
@@ -280,13 +268,11 @@ class ShortcutColumn:
         # Use equal-molar approximation for quick estimate
         nr_ns_ratio = (z_hk / z_lk) ** 0.5  # simplified
         n_rectifying = n_actual / (1.0 + 1.0 / nr_ns_ratio)
-        return round(n_rectifying, 1)
+        return float(round(n_rectifying, 1))
 
     @staticmethod
     def _validate_recoveries(rec_lk: float, rec_hk: float) -> None:
         """Validate recovery specifications."""
         for name, val in [("recovery_lk", rec_lk), ("recovery_hk", rec_hk)]:
             if not (0.0 < val < 1.0):
-                raise ValueError(
-                    f"{name} must be in the open interval (0, 1), got {val}."
-                )
+                raise ValueError(f"{name} must be in the open interval (0, 1), got {val}.")

@@ -108,8 +108,8 @@ ASU_COMPOSITIONS: dict[str, dict[str, float]] = {
 
 # ── CO₂ capture process defaults ─────────────────────────────────────────────
 CO2_CAPTURE_DEFAULTS: dict[str, float] = {
-    "lean_loading": 0.20,       # mol CO₂ / mol amine  (typical MEA lean)
-    "rich_loading": 0.48,       # mol CO₂ / mol amine  (typical MEA rich)
+    "lean_loading": 0.20,  # mol CO₂ / mol amine  (typical MEA lean)
+    "rich_loading": 0.48,  # mol CO₂ / mol amine  (typical MEA rich)
     "amine_concentration": 30.0,  # wt %  (standard MEA aqueous solution)
     "stripper_pressure_bar": 1.8,  # bar  (regenerator operating pressure)
     "absorber_pressure_bar": 1.1,  # bar
@@ -120,9 +120,9 @@ CO2_CAPTURE_DEFAULTS: dict[str, float] = {
 # ── Distillation column design defaults ──────────────────────────────────────
 DISTILLATION_DEFAULTS: dict[str, float] = {
     "reflux_ratio_multiplier": 1.30,  # R = 1.30 × Rmin  (Kister heuristic)
-    "stages_multiplier": 2.00,        # N = 2.00 × Nmin
-    "tray_efficiency": 0.70,          # overall Murphree efficiency
+    "stages_multiplier": 2.00,  # N = 2.00 × Nmin
+    "tray_efficiency": 0.70,  # overall Murphree efficiency
     "pressure_drop_per_tray_kpa": 0.7,  # kPa per tray (rule of thumb)
     "methanol_recovery_target": 0.89,  # CID-derived: B = 8 → 89 %
-    "feed_basis_kmol_h": 65_000.0,    # A = 26 → F = 26 × 2500
+    "feed_basis_kmol_h": 65_000.0,  # A = 26 → F = 26 × 2500
 }

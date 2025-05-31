@@ -6,7 +6,7 @@ law).  Suitable for rapid pre-screening of flash-drum operating conditions
 upstream of distillation trains, e.g. the crude methanol syngas separator
 described in CENG50009 Separation Processes 2.
 
-References
+References:
 ----------
 - Rachford & Rice, *JPT* (1952)
 - Perry's Chemical Engineers' Handbook, 9th ed., Section 13
@@ -15,8 +15,8 @@ References
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
-from typing import Sequence
+from collections.abc import Sequence
+from dataclasses import dataclass
 
 import numpy as np
 from numpy.typing import NDArray
@@ -234,8 +234,7 @@ class FlashDrum:
             raise ValueError(f"z must be a 1-D array, got shape {z.shape}")
         if len(z) != len(self._components):
             raise ValueError(
-                f"z has {len(z)} elements but {len(self._components)} components "
-                "were specified."
+                f"z has {len(z)} elements but {len(self._components)} components were specified."
             )
         if np.any(z < 0.0):
             raise ValueError("All feed mole fractions must be ≥ 0.")

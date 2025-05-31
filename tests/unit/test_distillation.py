@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-import pytest
 import numpy as np
+import pytest
 
-from sepflows.distillation import ShortcutColumn, DSWTUResult, RigorousColumn
-from sepflows.constants import DISTILLATION_DEFAULTS
+from sepflows.distillation import RigorousColumn, ShortcutColumn
 
 
 class TestShortcutColumnInit:
@@ -52,7 +51,10 @@ class TestShortcutColumnSolve:
 
     def test_reflux_multiplier_applied(self) -> None:
         col = ShortcutColumn(
-            "methanol", "water", 0.99, 0.99,
+            "methanol",
+            "water",
+            0.99,
+            0.99,
             reflux_multiplier=1.5,
         )
         res = col.solve(65_000.0, 0.60, 0.35)
@@ -81,11 +83,14 @@ class TestShortcutColumnSolve:
         with pytest.raises(ValueError, match=r"z_lk \+ z_hk"):
             shortcut_meoh_water.solve(65_000.0, 0.70, 0.50)
 
-    @pytest.mark.parametrize("z_lk, z_hk", [
-        (0.30, 0.60),
-        (0.50, 0.40),
-        (0.80, 0.15),
-    ])
+    @pytest.mark.parametrize(
+        "z_lk, z_hk",
+        [
+            (0.30, 0.60),
+            (0.50, 0.40),
+            (0.80, 0.15),
+        ],
+    )
     def test_separation_factor_positive(self, z_lk: float, z_hk: float) -> None:
         col = ShortcutColumn("methanol", "water", 0.99, 0.99, 101_325.0, 337.0)
         res = col.solve(65_000.0, z_lk, z_hk)
@@ -96,11 +101,14 @@ class TestShortcutColumnSolve:
         r = repr(res)
         assert "Rmin" in r and "N=" in r
 
-    @pytest.mark.parametrize("lk,hk,t_feed", [
-        ("methanol", "water", 337.0),
-        ("dme", "methyl_formate", 280.0),
-        ("ethanol", "1_propanol", 370.0),
-    ])
+    @pytest.mark.parametrize(
+        "lk,hk,t_feed",
+        [
+            ("methanol", "water", 337.0),
+            ("dme", "methyl_formate", 280.0),
+            ("ethanol", "1_propanol", 370.0),
+        ],
+    )
     def test_multicomponent_pairs(self, lk: str, hk: str, t_feed: float) -> None:
         col = ShortcutColumn(lk, hk, 0.99, 0.99, 101_325.0, t_feed)
         res = col.solve(10_000.0, 0.50, 0.40)
@@ -112,25 +120,43 @@ class TestRigorousColumnInit:
 
     def test_valid_construction(self) -> None:
         col = RigorousColumn(
-            ["methanol", "water"], n_stages=20, feed_stage=10,
-            reflux_ratio=2.72, distillate_to_feed=0.55
+            ["methanol", "water"],
+            n_stages=20,
+            feed_stage=10,
+            reflux_ratio=2.72,
+            distillate_to_feed=0.55,
         )
         assert col is not None
 
     def test_too_few_stages_raises(self) -> None:
         with pytest.raises(ValueError, match="n_stages must be ≥ 3"):
-            RigorousColumn(["methanol", "water"], n_stages=2, feed_stage=1,
-                           reflux_ratio=2.0, distillate_to_feed=0.5)
+            RigorousColumn(
+                ["methanol", "water"],
+                n_stages=2,
+                feed_stage=1,
+                reflux_ratio=2.0,
+                distillate_to_feed=0.5,
+            )
 
     def test_feed_stage_out_of_range_raises(self) -> None:
         with pytest.raises(ValueError, match="feed_stage must be in"):
-            RigorousColumn(["methanol", "water"], n_stages=10, feed_stage=15,
-                           reflux_ratio=2.0, distillate_to_feed=0.5)
+            RigorousColumn(
+                ["methanol", "water"],
+                n_stages=10,
+                feed_stage=15,
+                reflux_ratio=2.0,
+                distillate_to_feed=0.5,
+            )
 
     def test_negative_reflux_raises(self) -> None:
         with pytest.raises(ValueError, match="reflux_ratio must be positive"):
-            RigorousColumn(["methanol", "water"], n_stages=10, feed_stage=5,
-                           reflux_ratio=-1.0, distillate_to_feed=0.5)
+            RigorousColumn(
+                ["methanol", "water"],
+                n_stages=10,
+                feed_stage=5,
+                reflux_ratio=-1.0,
+                distillate_to_feed=0.5,
+            )
 
 
 class TestRigorousColumnSolve:

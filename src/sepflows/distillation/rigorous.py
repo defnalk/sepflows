@@ -9,7 +9,7 @@ The solver follows the *Thomas algorithm* (tridiagonal matrix algorithm,
 TDMA) for the component-material-balance tridiagonals, with successive
 substitution on temperatures.
 
-References
+References:
 ----------
 - Wang & Henke, *Hydrocarbon Processing* (1966) — tridiagonal algorithm
 - Kister, H. Z. *Distillation Design* (1992), Chapter 4
@@ -19,14 +19,14 @@ References
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
-from typing import Sequence
+from collections.abc import Sequence
+from dataclasses import dataclass
 
 import numpy as np
 from numpy.typing import NDArray
 
 from sepflows.config import DEFAULT_CONFIG, SepConfig
-from sepflows.constants import DISTILLATION_DEFAULTS, P_ATM
+from sepflows.constants import P_ATM
 from sepflows.utils.thermodynamics import k_values_raoult
 
 __all__ = ["RigorousColumnResult", "RigorousColumn"]
@@ -118,19 +118,14 @@ class RigorousColumn:
     ) -> None:
         if n_stages < 3:
             raise ValueError(
-                f"n_stages must be ≥ 3 (condenser + at least 1 tray + reboiler), "
-                f"got {n_stages}."
+                f"n_stages must be ≥ 3 (condenser + at least 1 tray + reboiler), got {n_stages}."
             )
         if not (1 <= feed_stage <= n_stages):
-            raise ValueError(
-                f"feed_stage must be in [1, n_stages={n_stages}], got {feed_stage}."
-            )
+            raise ValueError(f"feed_stage must be in [1, n_stages={n_stages}], got {feed_stage}.")
         if reflux_ratio <= 0.0:
             raise ValueError(f"reflux_ratio must be positive, got {reflux_ratio}.")
         if not (0.0 < distillate_to_feed < 1.0):
-            raise ValueError(
-                f"distillate_to_feed must be in (0, 1), got {distillate_to_feed}."
-            )
+            raise ValueError(f"distillate_to_feed must be in (0, 1), got {distillate_to_feed}.")
 
         self._comp = tuple(components)
         self._nc = len(self._comp)
@@ -179,12 +174,18 @@ class RigorousColumn:
         f = feed_flow
         d = self._df * f
         b = f - d
-        l_rect = self._r * d          # liquid flow in rectifying section
-        v_col = l_rect + d             # vapour flow (CMO)
-        l_strip = l_rect + f           # liquid flow in stripping section (q=1)
+        l_rect = self._r * d  # liquid flow in rectifying section
+        v_col = l_rect + d  # vapour flow (CMO)
+        l_strip = l_rect + f  # liquid flow in stripping section (q=1)
 
-        _log.debug("CMO flows: L_rect=%.1f, V=%.1f, L_strip=%.1f, D=%.1f, B=%.1f",
-                   l_rect, v_col, l_strip, d, b)
+        _log.debug(
+            "CMO flows: L_rect=%.1f, V=%.1f, L_strip=%.1f, D=%.1f, B=%.1f",
+            l_rect,
+            v_col,
+            l_strip,
+            d,
+            b,
+        )
 
         # Initialise temperature profile by linear interpolation
         t_top = self._bubble_temp_approx(z, is_distillate=True)
@@ -198,9 +199,7 @@ class RigorousColumn:
         x = np.tile(z, (self._n, 1)).copy()
         y = np.tile(z, (self._n, 1)).copy()
 
-        l_flows = np.where(
-            np.arange(self._n) < self._nf - 1, l_rect, l_strip
-        ).astype(float)
+        l_flows = np.where(np.arange(self._n) < self._nf - 1, l_rect, l_strip).astype(float)
         v_flows = np.full(self._n, v_col, dtype=float)
 
         converged = False
@@ -211,10 +210,12 @@ class RigorousColumn:
             temperatures = np.clip(temperatures, 150.0, 700.0)
 
             # Compute K-values on each stage
-            k_all = np.array([
-                k_values_raoult(self._comp, float(temperatures[j]), self._p)
-                for j in range(self._n)
-            ])  # shape (N, nc)
+            k_all = np.array(
+                [
+                    k_values_raoult(self._comp, float(temperatures[j]), self._p)
+                    for j in range(self._n)
+                ]
+            )  # shape (N, nc)
 
             # Guard NaN/inf K-values
             k_all = np.where(np.isfinite(k_all), k_all, 1.0)
@@ -229,8 +230,7 @@ class RigorousColumn:
             # Thomas algorithm (tridiagonal MESH) per component
             for i, _comp in enumerate(self._comp):
                 sol = self._thomas_solve(
-                    x[:, i], y[:, i], k_all[:, i],
-                    l_flows, v_flows, z[i], f, d, b
+                    x[:, i], y[:, i], k_all[:, i], l_flows, v_flows, z[i], f, d, b
                 )
                 # Guard solver output
                 x[:, i] = np.where(np.isfinite(sol), sol, x[:, i])
@@ -367,9 +367,7 @@ class RigorousColumn:
 
         return x_new
 
-    def _bubble_temp_approx(
-        self, z: NDArray[np.float64], is_distillate: bool
-    ) -> float:
+    def _bubble_temp_approx(self, z: NDArray[np.float64], is_distillate: bool) -> float:
         """Rough bubble-temperature estimate for profile initialisation.
 
         Estimates a weighted average boiling point from the constants database,
@@ -379,8 +377,7 @@ class RigorousColumn:
 
         # Compute a mole-fraction-weighted normal boiling point
         t_wb = sum(
-            z[i] * NORMAL_BOILING_POINTS.get(self._comp[i], self._t_feed)
-            for i in range(self._nc)
+            z[i] * NORMAL_BOILING_POINTS.get(self._comp[i], self._t_feed) for i in range(self._nc)
         )
         # Scale to the operating pressure using a simple ratio heuristic
         p_ratio = (self._p / 101_325.0) ** 0.1
@@ -388,17 +385,13 @@ class RigorousColumn:
 
         # Condenser is cooler than the feed bubble point; reboiler is hotter
         offset = -10.0 if is_distillate else +20.0
-        return t_wb + offset
+        return float(t_wb + offset)
 
     def _validate_feed(self, z: NDArray[np.float64]) -> None:
         """Validate feed mole fraction vector."""
         if z.ndim != 1 or len(z) != self._nc:
-            raise ValueError(
-                f"z must be 1-D with {self._nc} elements, got shape {z.shape}."
-            )
+            raise ValueError(f"z must be 1-D with {self._nc} elements, got shape {z.shape}.")
         if np.any(z < 0.0):
             raise ValueError("All feed mole fractions must be ≥ 0.")
         if not np.isclose(z.sum(), 1.0, atol=1e-4):
-            raise ValueError(
-                f"Feed mole fractions must sum to 1.0, got {z.sum():.6f}."
-            )
+            raise ValueError(f"Feed mole fractions must sum to 1.0, got {z.sum():.6f}.")

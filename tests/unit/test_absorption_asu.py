@@ -4,14 +4,13 @@ from __future__ import annotations
 
 import pytest
 
-from sepflows.absorption import AmineAbsorber, CO2CaptureResult
-from sepflows.asu import CryogenicASU, ASUResult
-from sepflows.constants import CO2_CAPTURE_DEFAULTS
-
+from sepflows.absorption import AmineAbsorber
+from sepflows.asu import ASUResult, CryogenicASU
 
 # ══════════════════════════════════════════════════════════════════════════════
 # AmineAbsorber tests
 # ══════════════════════════════════════════════════════════════════════════════
+
 
 class TestAmineAbsorberInit:
     """Constructor validation."""
@@ -63,14 +62,22 @@ class TestAmineAbsorberSolve:
 
     def test_solvent_circulation_increases_with_co2_load(self) -> None:
         """Higher CO₂ load → more solvent required."""
-        a_low = AmineAbsorber(removal_target=0.90, inlet_co2_mol_h=1_000.0, inlet_total_mol_h=20_000.0)
-        a_high = AmineAbsorber(removal_target=0.90, inlet_co2_mol_h=10_000.0, inlet_total_mol_h=50_000.0)
+        a_low = AmineAbsorber(
+            removal_target=0.90, inlet_co2_mol_h=1_000.0, inlet_total_mol_h=20_000.0
+        )
+        a_high = AmineAbsorber(
+            removal_target=0.90, inlet_co2_mol_h=10_000.0, inlet_total_mol_h=50_000.0
+        )
         assert a_high.solve().solvent_circulation_mol_h > a_low.solve().solvent_circulation_mol_h
 
     def test_higher_removal_more_duty(self) -> None:
         """90% removal should need less duty than 98%."""
-        a_90 = AmineAbsorber(removal_target=0.90, inlet_co2_mol_h=5_000.0, inlet_total_mol_h=50_000.0)
-        a_98 = AmineAbsorber(removal_target=0.98, inlet_co2_mol_h=5_000.0, inlet_total_mol_h=50_000.0)
+        a_90 = AmineAbsorber(
+            removal_target=0.90, inlet_co2_mol_h=5_000.0, inlet_total_mol_h=50_000.0
+        )
+        a_98 = AmineAbsorber(
+            removal_target=0.98, inlet_co2_mol_h=5_000.0, inlet_total_mol_h=50_000.0
+        )
         assert a_98.solve().reboiler_duty_kw > a_90.solve().reboiler_duty_kw
 
     def test_repr_contains_removal(self, amine_absorber_default: AmineAbsorber) -> None:
@@ -79,7 +86,9 @@ class TestAmineAbsorberSolve:
 
     @pytest.mark.parametrize("removal", [0.70, 0.85, 0.95])
     def test_various_removal_targets(self, removal: float) -> None:
-        a = AmineAbsorber(removal_target=removal, inlet_co2_mol_h=5_000.0, inlet_total_mol_h=50_000.0)
+        a = AmineAbsorber(
+            removal_target=removal, inlet_co2_mol_h=5_000.0, inlet_total_mol_h=50_000.0
+        )
         res = a.solve()
         assert abs(res.co2_removal_fraction - removal) < 1e-9
 
@@ -87,6 +96,7 @@ class TestAmineAbsorberSolve:
 # ══════════════════════════════════════════════════════════════════════════════
 # CryogenicASU tests
 # ══════════════════════════════════════════════════════════════════════════════
+
 
 class TestCryogenicASUInit:
     """Constructor validation for CryogenicASU."""

@@ -4,7 +4,7 @@ Provides vapour-pressure correlations (Antoine equation), ideal K-values,
 Rachford–Rice flash solution, and simple enthalpy estimates used
 throughout sepflows.
 
-References
+References:
 ----------
 - Perry's Chemical Engineers' Handbook, 9th ed. (Green & Southard, 2019)
 - Kister, H. Z. *Distillation Design* (1992)
@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import logging
 import math
-from typing import Sequence
+from collections.abc import Sequence
 
 import numpy as np
 from numpy.typing import NDArray
@@ -65,20 +65,15 @@ def antoine_pressure(component: str, temperature_k: float) -> float:
         101198.0
     """
     if temperature_k <= 0.0:
-        raise ValueError(
-            f"temperature_k must be positive, got {temperature_k}"
-        )
+        raise ValueError(f"temperature_k must be positive, got {temperature_k}")
     if component not in ANTOINE:
         available = ", ".join(sorted(ANTOINE.keys()))
-        raise KeyError(
-            f"Component '{component}' not in Antoine database.  "
-            f"Available: {available}"
-        )
+        raise KeyError(f"Component '{component}' not in Antoine database.  Available: {available}")
     coeff = ANTOINE[component]
     t_celsius = temperature_k - 273.15
     log_p = coeff["A"] - coeff["B"] / (coeff["C"] + t_celsius)
     p_mmhg = 10.0**log_p
-    return p_mmhg * _MMHG_TO_PA
+    return float(p_mmhg * _MMHG_TO_PA)
 
 
 def k_values_raoult(
@@ -160,9 +155,7 @@ def rachford_rice(
     z = np.asarray(z, dtype=np.float64)
     k = np.asarray(k, dtype=np.float64)
     if z.shape != k.shape:
-        raise ValueError(
-            f"z and k must have the same shape, got {z.shape} vs {k.shape}"
-        )
+        raise ValueError(f"z and k must have the same shape, got {z.shape} vs {k.shape}")
     if not math.isclose(z.sum(), 1.0, abs_tol=1e-6):
         raise ValueError(f"Feed fractions z must sum to 1.0, got {z.sum():.8f}")
 
@@ -262,9 +255,7 @@ def bubble_point_temperature(
             t_hi, f_hi = t_mid, f_mid
         else:
             t_lo, f_lo = t_mid, f_mid
-    raise RuntimeError(
-        f"Bubble-point temperature did not converge after {max_iter} iterations."
-    )
+    raise RuntimeError(f"Bubble-point temperature did not converge after {max_iter} iterations.")
 
 
 def dew_point_temperature(
@@ -323,9 +314,7 @@ def dew_point_temperature(
             t_hi, f_hi = t_mid, f_mid
         else:
             t_lo, f_lo = t_mid, f_mid
-    raise RuntimeError(
-        f"Dew-point temperature did not converge after {max_iter} iterations."
-    )
+    raise RuntimeError(f"Dew-point temperature did not converge after {max_iter} iterations.")
 
 
 def relative_volatility(
@@ -353,9 +342,7 @@ def relative_volatility(
     p_i = antoine_pressure(component, temperature_k)
     p_ref = antoine_pressure(reference, temperature_k)
     alpha = p_i / p_ref
-    _log.debug(
-        "α(%s/%s) at %.1f K = %.4f", component, reference, temperature_k, alpha
-    )
+    _log.debug("α(%s/%s) at %.1f K = %.4f", component, reference, temperature_k, alpha)
     return alpha
 
 

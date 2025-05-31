@@ -10,7 +10,7 @@ Key modelling assumptions:
 - Lean/rich heat exchanger modelled as a simple duty split.
 - Stripper reboiler duty estimated from the industry benchmark for MEA.
 
-References
+References:
 ----------
 - Kohl, A. L. & Nielsen, R. *Gas Purification*, 5th ed. (Gulf, 1997)
 - Rochelle, G. T., *Science* 325 (2009) — solvent screening review
@@ -24,7 +24,7 @@ import math
 from dataclasses import dataclass
 
 from sepflows.config import DEFAULT_CONFIG, SepConfig
-from sepflows.constants import CO2_CAPTURE_DEFAULTS, P_ATM
+from sepflows.constants import CO2_CAPTURE_DEFAULTS
 
 __all__ = ["CO2CaptureResult", "AmineAbsorber"]
 
@@ -160,8 +160,7 @@ class AmineAbsorber:
         delta_loading = self._rich - self._lean
         if delta_loading <= 0.0:
             raise ValueError(
-                f"rich_loading ({self._rich}) must be greater than "
-                f"lean_loading ({self._lean})."
+                f"rich_loading ({self._rich}) must be greater than lean_loading ({self._lean})."
             )
         # mol amine/h = mol CO₂ captured / Δloading
         amine_flow = co2_captured / delta_loading
@@ -178,9 +177,11 @@ class AmineAbsorber:
         # ── Lean–rich HX duty ─────────────────────────────────────────────────
         # Sensible heat = amine_flow × Cp × ΔT (rich → stripper temp)
         delta_t_hx = 80.0  # K (typical rich inlet ≈ 40°C → stripper ≈ 120°C)
-        cp_kj_mol_k = _CP_MEA_SOLUTION * (
-            self._c_amine * self._mw_mea + (1 - self._c_amine) * self._mw_water
-        ) / 1000.0  # kJ/(mol·K)
+        cp_kj_mol_k = (
+            _CP_MEA_SOLUTION
+            * (self._c_amine * self._mw_mea + (1 - self._c_amine) * self._mw_water)
+            / 1000.0
+        )  # kJ/(mol·K)
         lrhx_duty_kw = (
             self._eps_hx * amine_flow * cp_kj_mol_k * delta_t_hx / 3600.0
         ) * 1000.0  # kJ/h → kW  (× 1000/3600)
@@ -188,9 +189,7 @@ class AmineAbsorber:
         lrhx_duty_kw = self._eps_hx * amine_flow * cp_kj_mol_k * delta_t_hx / 3.6
 
         # ── Absorber height estimate ──────────────────────────────────────────
-        absorber_height = self._estimate_packing_height(
-            co2_captured, amine_flow
-        )
+        absorber_height = self._estimate_packing_height(co2_captured, amine_flow)
 
         _log.info(
             "CO₂ capture: removal=%.1f%%, Q_reb=%.1f kW, Q_LRHX=%.1f kW, H_abs=%.1f m",
@@ -255,9 +254,7 @@ class AmineAbsorber:
     ) -> None:
         """Validate constructor arguments."""
         if not (0.0 < removal_target < 1.0):
-            raise ValueError(
-                f"removal_target must be in (0, 1), got {removal_target}."
-            )
+            raise ValueError(f"removal_target must be in (0, 1), got {removal_target}.")
         if lean_loading <= 0.0:
             raise ValueError(f"lean_loading must be positive, got {lean_loading}.")
         if rich_loading <= lean_loading:
@@ -265,6 +262,4 @@ class AmineAbsorber:
                 f"rich_loading ({rich_loading}) must exceed lean_loading ({lean_loading})."
             )
         if not (0.0 <= lrhx_effectiveness <= 1.0):
-            raise ValueError(
-                f"lrhx_effectiveness must be in [0, 1], got {lrhx_effectiveness}."
-            )
+            raise ValueError(f"lrhx_effectiveness must be in [0, 1], got {lrhx_effectiveness}.")
