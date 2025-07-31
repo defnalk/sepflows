@@ -56,17 +56,16 @@ docs = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/defnalk/sepflows"
+Homepage  = "https://github.com/defnalk/sepflows"
 Repository = "https://github.com/defnalk/sepflows"
-Issues = "https://github.com/defnalk/sepflows/issues"
+Issues    = "https://github.com/defnalk/sepflows/issues"
 Changelog = "https://github.com/defnalk/sepflows/blob/main/CHANGELOG.md"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/sepflows"]
 
-# ── Pytest ─────────────────────────────────────────────────────────────────────
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths    = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
@@ -79,14 +78,13 @@ addopts = [
     "-q",
 ]
 
-# ── Coverage ───────────────────────────────────────────────────────────────────
 [tool.coverage.run]
 source = ["src/sepflows"]
-omit = ["src/sepflows/_version.py"]
+omit   = ["src/sepflows/_version.py"]
 
 [tool.coverage.report]
-fail_under = 90
-show_missing = true
+fail_under    = 90
+show_missing  = true
 exclude_lines = [
     "pragma: no cover",
     "def __repr__",
@@ -94,11 +92,10 @@ exclude_lines = [
     "if TYPE_CHECKING:",
 ]
 
-# ── Ruff (linting + formatting) ───────────────────────────────────────────────
 [tool.ruff]
-line-length = 99
+line-length    = 99
 target-version = "py310"
-src = ["src"]
+src            = ["src"]
 
 [tool.ruff.lint]
 select = [
@@ -113,6 +110,7 @@ select = [
     "ANN",  # flake8-annotations
 ]
 ignore = [
+<<<<<<< HEAD
     "D100", "D101", "D102", "D103", "D104", "D107",
     "D205", "D301", "D400", "D401",
     "ANN101", "ANN102",
@@ -121,15 +119,32 @@ ignore = [
     "B905",
     "E741",
     "F841",
+=======
+    "D100",  # missing docstring in public module
+    "D101",  # missing docstring in public class
+    "D102",  # missing docstring in public method
+    "D103",  # missing docstring in public function
+    "D104",  # missing docstring in public package
+    "D107",  # missing docstring in __init__
+    "D301",  # r-prefix on docstrings — LaTeX backslashes, not escape sequences
+    "ANN101", # removed in newer ruff — harmless to keep
+    "ANN102", # removed in newer ruff — harmless to keep
+    "E741",  # ambiguous variable name `l` — engineering notation
+    "B905",  # zip() strict= — not required for same-length slices
+    "N806",  # uppercase vars — engineering notation (Y_b, K_i etc.)
+    "F841",  # unused variable `fb` — Brent's method discard
+>>>>>>> a7260718dda398e6f21e1c3cea7896f3edf70142
 ]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
 
-# ── Mypy ───────────────────────────────────────────────────────────────────────
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["ANN", "D", "S", "N"]
+
 [tool.mypy]
-python_version = "3.10"
-strict = true
-warn_return_any = true
+python_version      = "3.10"
+strict              = true
+warn_return_any     = true
 warn_unused_configs = true
 ignore_missing_imports = false
