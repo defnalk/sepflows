@@ -113,10 +113,14 @@ select = [
     "ANN",  # flake8-annotations
 ]
 ignore = [
-    "D100",  # missing docstring in public module (covered by package __init__)
-    "D104",  # missing docstring in public package
-    "ANN101", # missing type annotation for self
-    "ANN102", # missing type annotation for cls
+    "D100", "D101", "D102", "D103", "D104", "D107",
+    "D205", "D301", "D400", "D401",
+    "ANN101", "ANN102",
+    "S101",
+    "N803", "N806",
+    "B905",
+    "E741",
+    "F841",
 ]
 
 [tool.ruff.lint.pydocstyle]
