@@ -1,0 +1,81 @@
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.pyd
+
+# ── Distribution / packaging ───────────────────────────────────────────────────
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# ── Environments ──────────────────────────────────────────────────────────────
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# ── Testing & coverage ────────────────────────────────────────────────────────
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+coverage.xml
+htmlcov/
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# ── Type checking ─────────────────────────────────────────────────────────────
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyright/
+.ruff_cache/
+
+# ── Documentation ─────────────────────────────────────────────────────────────
+docs/_build/
+docs/api/
+
+# ── Jupyter ───────────────────────────────────────────────────────────────────
+.ipynb_checkpoints
+*.ipynb
+
+# ── IDE ───────────────────────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ── Aspen Plus simulation files (do not commit large binary sim files) ────────
+*.bkp
+*.apw
+*.apwz
+*.hsc
+
+# ── Logs ──────────────────────────────────────────────────────────────────────
+*.log
