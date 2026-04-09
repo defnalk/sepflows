@@ -288,13 +288,20 @@ class CryogenicASU:
         from sepflows.utils.thermodynamics import antoine_pressure
 
         tb_normal = NORMAL_BOILING_POINTS.get(component, 90.0)  # K at 1 atm
+        if pressure_bar <= 0.0:
+            raise ValueError(f"pressure_bar must be positive, got {pressure_bar}")
         # Iterate: find T such that P_ant(T) = pressure_bar × 1e5
         target_pa = pressure_bar * 1e5
         t = tb_normal
         for _ in range(50):
             p = antoine_pressure(component, t)
             ratio = target_pa / max(p, 1.0)
-            t *= ratio**0.15
             if abs(ratio - 1.0) < 1e-6:
                 break
+            # Clamp the update factor so a pathological Antoine extrapolation
+            # can't drive t towards zero (antoine_pressure raises on t<=0) or
+            # off to thousands of kelvin in a single step.
+            step = ratio**0.15
+            step = min(max(step, 0.5), 2.0)
+            t = max(t * step, 1.0)
         return t
