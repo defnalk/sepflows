@@ -244,6 +244,18 @@ def bubble_point_temperature(
             t_hi += 20.0
             f_hi = _residual(t_hi)
 
+    if f_lo * f_hi > 0:
+        # Bracket expansion failed to produce a sign change.  Bisecting
+        # anyway would silently return whichever endpoint happened to
+        # win the comparison, masking the real problem (e.g. operating
+        # pressure above the critical pressure of every component, or
+        # an Antoine extrapolation that can't reach P_op in [150, 700] K).
+        raise RuntimeError(
+            "Bubble-point bracket failed to bracket a root in "
+            f"[{t_lo:.1f}, {t_hi:.1f}] K at P={pressure_pa:.0f} Pa. "
+            "Check feed composition and pressure, or provide a better t_init_k."
+        )
+
     # Bisection
     for iteration in range(max_iter):
         t_mid = (t_lo + t_hi) / 2.0
@@ -303,6 +315,13 @@ def dew_point_temperature(
         else:
             t_hi += 20.0
             f_hi = _residual(t_hi)
+
+    if f_lo * f_hi > 0:
+        raise RuntimeError(
+            "Dew-point bracket failed to bracket a root in "
+            f"[{t_lo:.1f}, {t_hi:.1f}] K at P={pressure_pa:.0f} Pa. "
+            "Check vapour composition and pressure, or provide a better t_init_k."
+        )
 
     for iteration in range(max_iter):
         t_mid = (t_lo + t_hi) / 2.0
