@@ -26,8 +26,8 @@ import numpy as np
 from numpy.typing import NDArray
 
 from sepflows.config import DEFAULT_CONFIG, SepConfig
-from sepflows.constants import P_ATM
-from sepflows.utils.thermodynamics import k_values_raoult
+from sepflows.constants import ANTOINE, P_ATM
+from sepflows.utils.thermodynamics import _MMHG_TO_PA, k_values_raoult
 
 __all__ = ["RigorousColumnResult", "RigorousColumn"]
 
@@ -137,6 +137,20 @@ class RigorousColumn:
         self._t_feed = feed_temperature_k
         self._cfg = config or DEFAULT_CONFIG
 
+        # Precompute Antoine coefficient vectors once per column instance.
+        # Inside solve(), K-values for (n_stages x n_components) are then
+        # built in a single vectorized numpy expression instead of
+        # n_stages * n_components separate Python-level dict lookups.
+        missing = [c for c in self._comp if c not in ANTOINE]
+        if missing:
+            available = ", ".join(sorted(ANTOINE.keys()))
+            raise KeyError(
+                f"Components not in Antoine database: {missing}. Available: {available}"
+            )
+        self._antoine_A = np.array([ANTOINE[c]["A"] for c in self._comp], dtype=np.float64)
+        self._antoine_B = np.array([ANTOINE[c]["B"] for c in self._comp], dtype=np.float64)
+        self._antoine_C = np.array([ANTOINE[c]["C"] for c in self._comp], dtype=np.float64)
+
         _log.info(
             "RigorousColumn: %d components, N=%d, Nf=%d, R=%.3f, D/F=%.3f, P=%.2f bar",
             self._nc,
@@ -209,13 +223,10 @@ class RigorousColumn:
             # Guard: clamp temperatures before computing K-values
             temperatures = np.clip(temperatures, 150.0, 700.0)
 
-            # Compute K-values on each stage
-            k_all = np.array(
-                [
-                    k_values_raoult(self._comp, float(temperatures[j]), self._p)
-                    for j in range(self._n)
-                ]
-            )  # shape (N, nc)
+            # Compute K-values on each stage (vectorized over stages AND components).
+            # Equivalent to looping k_values_raoult per stage but skips N*nc dict
+            # lookups + per-call logger.debug dispatch.
+            k_all = self._k_matrix(temperatures)  # shape (N, nc)
 
             # Guard NaN/inf K-values
             k_all = np.where(np.isfinite(k_all), k_all, 1.0)
@@ -241,14 +252,16 @@ class RigorousColumn:
             row_sums_x = np.where(row_sums_x > 1e-30, row_sums_x, 1.0)
             x /= row_sums_x
 
-            # Update temperatures via bubble-point calculation (gentle step)
-            for j in range(self._n):
-                k_j = k_values_raoult(self._comp, float(temperatures[j]), self._p)
-                sigma = float(np.sum(k_j * x[j]))
-                if sigma > 0 and np.isfinite(sigma):
-                    # Very gentle temperature update: move 5 % toward convergence
-                    t_new = temperatures[j] * (1.0 + 0.05 * (sigma - 1.0))
-                    temperatures[j] = np.clip(t_new, 150.0, 700.0)
+            # Update temperatures via bubble-point calculation (gentle step).
+            # Vectorized across all stages: each stage's new T depends only on
+            # its own prior T and x row, so order-of-update doesn't matter.
+            k_bp = self._k_matrix(temperatures)  # (N, nc)
+            sigma = (k_bp * x).sum(axis=1)       # (N,)
+            valid = np.isfinite(sigma) & (sigma > 0)
+            t_new = np.where(
+                valid, temperatures * (1.0 + 0.05 * (sigma - 1.0)), temperatures
+            )
+            temperatures = np.clip(t_new, 150.0, 700.0)
 
             t_change = float(np.nanmax(np.abs(temperatures - t_old)))
             if self._cfg.verbose:
@@ -291,6 +304,23 @@ class RigorousColumn:
         )
 
     # ── Private helpers ───────────────────────────────────────────────────────
+
+    def _k_matrix(self, temperatures: NDArray[np.float64]) -> NDArray[np.float64]:
+        """Vectorized ideal K-values for all stages and components.
+
+        Equivalent to
+            np.array([k_values_raoult(self._comp, T, self._p) for T in temperatures])
+        but uses precomputed Antoine coefficient vectors and broadcasts over
+        the full (n_stages x n_components) grid in a single numpy expression.
+        Bypasses the per-call dict lookups, list comprehension, validation,
+        and logger.debug dispatch in the scalar path.
+
+        K_ij = 10^(A_j - B_j / (C_j + T_i - 273.15)) * mmHg_to_Pa / P
+        """
+        t_celsius = temperatures[:, None] - 273.15                         # (N, 1)
+        log_p = self._antoine_A - self._antoine_B / (self._antoine_C + t_celsius)
+        p_sat_pa = np.power(10.0, log_p) * _MMHG_TO_PA                     # (N, nc)
+        return p_sat_pa / self._p
 
     def _thomas_solve(
         self,
