@@ -249,9 +249,19 @@ class ShortcutColumn:
         where X = (R − Rmin)/(R + 1) and Y = (N − Nmin)/(N + 1).
         """
         x_g = (r - r_min) / (r + 1.0)
+        # The Molokanov fit contains x_g**0.5 in the denominator and is
+        # only defined for x_g > 0 (i.e. r strictly greater than r_min).
+        # Callers already bump r to r_min + 0.01 but r_min can be negative
+        # for near-ideal splits, pushing x_g onto or below zero.  Clamp to
+        # a small positive value so the correlation stays finite and the
+        # resulting N stays a real, monotone function of the inputs.
+        x_g = max(x_g, 1e-6)
         # Molokanov equation
         y_g = 1.0 - math.exp((1.0 + 54.4 * x_g) / (11.0 + 117.2 * x_g) * (x_g - 1.0) / (x_g**0.5))
-        n = (y_g + n_min) / (1.0 - y_g)
+        denom = 1.0 - y_g
+        if denom <= 0.0:
+            denom = 1e-9
+        n = (y_g + n_min) / denom
         return n
 
     def _kirkbride_feed_stage(
