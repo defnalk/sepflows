@@ -182,10 +182,7 @@ class AmineAbsorber:
             * (self._c_amine * self._mw_mea + (1 - self._c_amine) * self._mw_water)
             / 1000.0
         )  # kJ/(mol·K)
-        lrhx_duty_kw = (
-            self._eps_hx * amine_flow * cp_kj_mol_k * delta_t_hx / 3600.0
-        ) * 1000.0  # kJ/h → kW  (× 1000/3600)
-        # Actually: kJ/mol·K × mol/h × K ÷ 3.6 → kW
+        # Q̇ = ε × ṁ_amine × Cp × ΔT.  Units: kJ/(mol·K) × mol/h × K / 3.6 → kW.
         lrhx_duty_kw = self._eps_hx * amine_flow * cp_kj_mol_k * delta_t_hx / 3.6
 
         # ── Absorber height estimate ──────────────────────────────────────────
