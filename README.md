@@ -9,20 +9,20 @@
 > **A Python toolkit for the simulation and design of industrial separation sequences.**
 > Flash drums · Distillation trains · CO₂ absorption · Cryogenic ASU
 
-`sepflows` provides composable, well-typed building blocks for separation process design inspired by the integrated methanol purification, CO₂ capture, and air separation flowsheet described in *CENG50009 Separation Processes 2* at Imperial College London.
-It is designed to feel like a real scientific computing package — similar in spirit to [scipy](https://scipy.org/) or [pvlib](https://pvlib-python.readthedocs.io/) — with transparent intermediate values, dataclass results, and no hidden state.
+`sepflows` provides composable, well typed building blocks for separation process design inspired by the integrated methanol purification, CO₂ capture, and air separation flowsheet described in *CENG50009 Separation Processes 2* at Imperial College London.
+It is designed to feel like a real scientific computing package, similar in spirit to [scipy](https://scipy.org/) or [pvlib](https://pvlib-python.readthedocs.io/), with transparent intermediate values, dataclass results, and no hidden state.
 
 ---
 
 ## ✨ Features
 
-- **Flash drum** — isothermal two-phase VLE via the Rachford–Rice equation; temperature sensitivity sweep for partial-condensation optimisation
-- **Shortcut distillation (DSTWU / FUG)** — Fenske–Underwood–Gilliland procedure matching Aspen Plus DSTWU output; multi-component relative volatility
-- **Rigorous distillation (MESH)** — Wang–Henke tridiagonal solver with CMO assumption; full stage-by-stage profiles
-- **CO₂ absorption** — MEA-based absorber–stripper sizing with lean/rich heat exchanger duty, NTU/HTU absorber height, and reboiler duty estimation
-- **Cryogenic ASU** — Linde–Frankl double-column sizing with Fenske Nmin for both HP and LP columns, compression power estimate, and optional argon recovery
-- **Thermodynamic utilities** — Antoine equation (Perry's 9th ed.), ideal K-values, bubble/dew-point iteration, Underwood roots
-- **Full type hints** and Google-style docstrings throughout
+- **Flash drum**, isothermal two phase VLE via the Rachford Rice equation; temperature sensitivity sweep for partial condensation optimisation
+- **Shortcut distillation (DSTWU / FUG)**: Fenske Underwood Gilliland procedure matching Aspen Plus DSTWU output; multi component relative volatility
+- **Rigorous distillation (MESH)**: Wang Henke tridiagonal solver with CMO assumption; full stage by stage profiles
+- **CO₂ absorption**: MEA based absorber stripper sizing with lean/rich heat exchanger duty, NTU/HTU absorber height, and reboiler duty estimation
+- **Cryogenic ASU**: Linde Frankl double column sizing with Fenske Nmin for both HP and LP columns, compression power estimate, and optional argon recovery
+- **Thermodynamic utilities**: Antoine equation (Perry's 9th ed.), ideal K values, bubble/dew point iteration, Underwood roots
+- **Full type hints** and Google style docstrings throughout
 - **100 % module `__all__` coverage**
 - **Logging** (not print statements) via the `sepflows` logger
 
@@ -202,10 +202,10 @@ drum = FlashDrum(["methanol", "water"], 320.0, 2e5, config=cfg)
 
 | Argument | Default | Description |
 |---|---|---|
-| `light_key` | — | LK component name |
-| `heavy_key` | — | HK component name |
-| `recovery_lk` | — | LK distillate recovery (0–1) |
-| `recovery_hk` | — | HK bottoms recovery (0–1) |
+| `light_key` | n/a | LK component name |
+| `heavy_key` | n/a | HK component name |
+| `recovery_lk` | n/a | LK distillate recovery (0 to 1) |
+| `recovery_hk` | n/a | HK bottoms recovery (0 to 1) |
 | `reflux_multiplier` | `1.30` | R = multiplier × Rmin |
 | `stages_multiplier` | `2.00` | N = multiplier × Nmin |
 
@@ -217,7 +217,7 @@ drum = FlashDrum(["methanol", "water"], 320.0, 2e5, config=cfg)
 
 ### `sepflows.distillation.RigorousColumn`
 
-Wang–Henke MESH solver. `.solve(feed_flow, z) → RigorousColumnResult`
+Wang Henke MESH solver. `.solve(feed_flow, z) → RigorousColumnResult`
 
 **`RigorousColumnResult`** attributes: `x`, `y`, `l_flows`, `v_flows`, `temperatures_k`, `distillate_composition`, `bottoms_composition`, `distillate_flow`, `bottoms_flow`, `n_iterations`, `converged`
 
@@ -225,7 +225,7 @@ Wang–Henke MESH solver. `.solve(feed_flow, z) → RigorousColumnResult`
 
 ### `sepflows.absorption.AmineAbsorber`
 
-MEA absorber–stripper unit. `.solve() → CO2CaptureResult`
+MEA absorber stripper unit. `.solve() → CO2CaptureResult`
 
 **`CO2CaptureResult`** attributes: `co2_captured_mol_h`, `co2_removal_fraction`, `lean_loading`, `rich_loading`, `solvent_circulation_mol_h`, `reboiler_duty_kw`, `lean_rich_hx_duty_kw`, `absorber_height_m`
 
@@ -233,7 +233,7 @@ MEA absorber–stripper unit. `.solve() → CO2CaptureResult`
 
 ### `sepflows.asu.CryogenicASU`
 
-Linde–Frankl double-column ASU. `.solve() → ASUResult`
+Linde Frankl double column ASU. `.solve() → ASUResult`
 
 **`ASUResult`** attributes: `n2_flow_mol_h`, `o2_flow_mol_h`, `ar_flow_mol_h`, `air_feed_mol_h`, `compression_power_kw`, `hp_column_stages`, `lp_column_stages`, `n2_recovery`, `o2_recovery`
 
@@ -244,9 +244,9 @@ Linde–Frankl double-column ASU. `.solve() → ASUResult`
 | Attribute | Default | Description |
 |---|---|---|
 | `max_iterations` | `200` | Max solver iterations |
-| `convergence_tol` | `1e-8` | Mole-fraction residual tolerance |
+| `convergence_tol` | `1e-8` | Mole fraction residual tolerance |
 | `eos_model` | `"raoult"` | EOS: `"raoult"` or `"srk"` (future) |
-| `verbose` | `False` | Emit DEBUG-level iteration logs |
+| `verbose` | `False` | Emit DEBUG level iteration logs |
 
 ---
 
@@ -275,7 +275,7 @@ Tests are split into **unit** (`tests/unit/`) and **integration** (`tests/integr
 ```bash
 make install-dev   # editable install + dev deps
 make lint          # ruff check
-make format        # ruff format + auto-fix
+make format        # ruff format + auto fix
 make typecheck     # mypy strict
 ```
 
@@ -285,13 +285,13 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the full contribution guide.
 
 ## 📚 References
 
-- Green, D. W. & Southard, M. Z. (eds.) *Perry's Chemical Engineers' Handbook*, 9th ed. McGraw-Hill, 2019
-- Kister, H. Z. *Distillation Design*. McGraw-Hill, 1992
+- Green, D. W. & Southard, M. Z. (eds.) *Perry's Chemical Engineers' Handbook*, 9th ed. McGraw Hill, 2019
+- Kister, H. Z. *Distillation Design*. McGraw Hill, 1992
 - Kohl, A. L. & Nielsen, R. *Gas Purification*, 5th ed. Gulf Publishing, 1997
-- Smith, A. R. & Klosek, J. *Fuel Processing Technology*, 70 (2001) — ASU review
+- Smith, A. R. & Klosek, J. *Fuel Processing Technology*, 70 (2001), ASU review
 
 ---
 
 ## 📄 License
 
-MIT © 2024 Defne Nihal Ertuğrul — see [`LICENSE`](LICENSE) for details.
+MIT © 2024 Defne Nihal Ertuğrul, see [`LICENSE`](LICENSE) for details.
