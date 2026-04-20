@@ -380,8 +380,13 @@ class RigorousColumn:
         # Forward sweep
         c_prime = np.zeros(n)
         d_prime = np.zeros(n)
-        c_prime[0] = c_diag[0] / b_diag[0]
-        d_prime[0] = d_rhs[0] / b_diag[0]
+        # Guard against a zero pivot on the first row.  This can occur in
+        # pathological initialisations (e.g. v_flows[0] = 0 during a cold
+        # start or a degenerate K-value), and without a guard the solver
+        # silently produces inf/NaN that corrupts the whole column profile.
+        b0 = b_diag[0] if abs(b_diag[0]) > 1e-30 else -1e-30
+        c_prime[0] = c_diag[0] / b0
+        d_prime[0] = d_rhs[0] / b0
         for j in range(1, n):
             denom = b_diag[j] - a_diag[j] * c_prime[j - 1]
             if abs(denom) < 1e-30:
